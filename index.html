@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <style>
+    .p-1r {
+      padding: 1rem;
+    }
+
+    .mb-1r {
+      margin-bottom: 1rem;
+    }
+
+    .align-middle {
+      display: flex;
+      align-items: center;
+    }
+
+    .flex {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .queue-box {
+      height: 50px;
+      width: 50px;
+      border: 2px solid black;
+    }
+  </style>
+
+  <script>
+    let time = 0;
+    let maxStep = 20;
+
+    let timer = null;
+    let queue = [];
+
+    let speed = 1;
+    let incoming = 1;
+    let serving = 5;
+
+    // source: https://stackoverflow.com/questions/1349404/generate-random-string-characters-in-javascript
+    function makeId(length) {
+      var result = '';
+      var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      var charactersLength = characters.length;
+      for (var i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+      }
+      return result;
+    }
+
+    function updateSpeed(value) {
+      speed = parseFloat(value);
+      document.getElementById("speed-display").innerHTML = speed;
+      pause();
+      start();
+    }
+
+    function updateIncoming(value) {
+      incoming = parseInt(value);
+    }
+
+    function updateServing(value) {
+      serving = parseInt(value);
+    }
+
+    function getBoxColor(counter) {
+      const value = counter / serving;
+      if (value >= 0.75)
+        return "#f56565";
+      else if (value >= 0.5)
+        return "#fc8181";
+      else if (value >= 0.25)
+        return "#feb2b2";
+      else
+        return "#fed7d7";
+    }
+
+    function render() {
+      document.getElementById("time").innerHTML = time;
+      document.getElementById("queue").innerHTML = JSON.stringify(queue, null, 2);
+
+      const queueDisplay = document.getElementById("queue-display");
+      queueDisplay.innerHTML = "";
+
+      queue.forEach((q) => {
+        if (document.getElementById(q.id) === null) {
+          const elt = document.createElement("div");
+          elt.id = q.id;
+          elt.className = "queue-box";
+          elt.style.background = getBoxColor(q.counter);
+          queueDisplay.appendChild(elt);
+        } else {
+          const elt = document.getElementById(q.id);
+          elt.style.background = getBoxColor(q.counter);
+        }
+      })
+      document.getElementById("waiting").innerHTML = getWaitTime();
+    }
+
+    function step() {
+      if (time <= maxStep) {
+        // add to queue
+        for (let i = 0; i < incoming; i++) {
+          queue.push({ id: makeId(3), counter: serving });
+        }
+      }
+      if (queue.length > 0) {
+        queue[0].counter -= 1;
+        if (queue[0].counter === 0)
+          queue = queue.slice(1);
+      }
+      time += 1;
+      render();
+    }
+
+    function getWaitTime() {
+      let wait = 0;
+      queue.forEach((q) => {
+        wait += q.counter;
+      });
+      return wait;
+    }
+
+    function start() {
+      clearInterval(timer);
+      timer = setInterval(step, 1000 / speed);
+    }
+
+    function pause() {
+      clearInterval(timer);
+    }
+
+    function reset() {
+      pause();
+      queue = [];
+      time = 0;
+      render();
+    }
+  </script>
+
+</head>
+
+<body class="p-1r">
+  <h1 class="mb-1r">Flux Wait Time Model</h1>
+  <div class="mb-1r">
+    <span><b>Time: </b><span id="time">0</span></span>
+  </div>
+  <div class="mb-1r align-middle">
+    <label>
+      Speed of simulation:
+      <input id="speed" type="range" value=1 step=0.25 min=0.25 max=4 oninput="updateSpeed(this.value)">
+    </label>
+    <span id="speed-display">1</span>
+  </div>
+  <div class="mb-1r align-middle">
+    <label>
+      Incoming rate (people per second):
+      <input id="incoming" type="number" value=1 oninput="updateIncoming(this.value)">
+    </label>
+  </div>
+  <div class="mb-1r align-middle">
+    <label>
+      Serving time (in seconds):
+      <input id="serving" type="number" value=5 oninput="updateServing(this.value)">
+    </label>
+  </div>
+  <div class="mb-1r flex">
+    <button onclick="start()">Start</button>
+    <button onclick="pause()">Pause</button>
+    <button onclick="reset()">Reset</button>
+  </div>
+  <div>
+    <span><b>Waiting time: </b><span id="waiting">0</span></span>
+    <div id="queue-display" class="flex"></div>
+    <pre id="queue">
+    </pre>
+  </div>
+</body>
+
+</html>
