@@ -33,7 +33,7 @@
 
   <script>
     let time = 0;
-    let maxStep = 20;
+    let maxStep = 7;
 
     let timer = null;
     let queue = [];
@@ -80,9 +80,13 @@
         return "#fed7d7";
     }
 
+    /**
+    * Renders all the elements to reflect the current data
+    **/
     function render() {
       document.getElementById("time").innerHTML = time;
       document.getElementById("queue").innerHTML = JSON.stringify(queue, null, 2);
+      document.getElementById("incoming").value = incoming;
 
       const queueDisplay = document.getElementById("queue-display");
       queueDisplay.innerHTML = "";
@@ -102,14 +106,25 @@
       document.getElementById("waiting").innerHTML = getWaitTime();
     }
 
+    function gaussian(x, a = 1, b = 1, c = 1) {
+      return a * exp(-1 * (x - b) ** 2 / (2 * c ** 2))
+    }
+
     function step() {
+      // TODO: gaussian - function that decreases/increases incoming rate
+      // TODO: instead of incoming += 1 and incoming -= 1
       if (time <= maxStep) {
         // add to queue
         for (let i = 0; i < incoming; i++) {
           queue.push({ id: makeId(3), counter: serving });
         }
+        incoming += 1;
+      }
+      if (time > maxStep && incoming >= 0) {
+        incoming -= 1;
       }
       if (queue.length > 0) {
+        // TODO: update to enable serving time to be function-based
         queue[0].counter -= 1;
         if (queue[0].counter === 0)
           queue = queue.slice(1);
@@ -125,6 +140,8 @@
       });
       return wait;
     }
+
+    /** Interval functions **/
 
     function start() {
       clearInterval(timer);
