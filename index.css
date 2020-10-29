@@ -1,0 +1,23 @@
+.p-1r {
+  padding: 1rem;
+}
+
+.mb-1r {
+  margin-bottom: 1rem;
+}
+
+.align-middle {
+  display: flex;
+  align-items: center;
+}
+
+.flex {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.queue-box {
+  height: 50px;
+  width: 50px;
+  border: 2px solid black;
+}
