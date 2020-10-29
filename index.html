@@ -86,7 +86,7 @@
     function render() {
       document.getElementById("time").innerHTML = time;
       document.getElementById("queue").innerHTML = JSON.stringify(queue, null, 2);
-      document.getElementById("incoming").value = incoming;
+      document.getElementById("incoming").value = Math.ceil(incoming);
 
       const queueDisplay = document.getElementById("queue-display");
       queueDisplay.innerHTML = "";
@@ -106,23 +106,18 @@
       document.getElementById("waiting").innerHTML = getWaitTime();
     }
 
-    function gaussian(x, a = 1, b = 1, c = 1) {
-      return a * exp(-1 * (x - b) ** 2 / (2 * c ** 2))
+    // https://www.desmos.com/calculator/dxehrz5pe4
+    function gaussian(x, a = 33, b = 12, c = 1) {
+      return a * Math.exp(-1 * (x - b) ** 2 / (2 * c ** 2))
     }
 
     function step() {
-      // TODO: gaussian - function that decreases/increases incoming rate
-      // TODO: instead of incoming += 1 and incoming -= 1
-      if (time <= maxStep) {
-        // add to queue
-        for (let i = 0; i < incoming; i++) {
-          queue.push({ id: makeId(3), counter: serving });
-        }
-        incoming += 1;
+      // add to queue
+      for (let i = 0; i < incoming; i++) {
+        queue.push({ id: makeId(3), counter: serving });
       }
-      if (time > maxStep && incoming >= 0) {
-        incoming -= 1;
-      }
+      incoming = gaussian(time) >= 0.01 ? gaussian(time) : 0;
+      // console.log(time, incoming);
       if (queue.length > 0) {
         // TODO: update to enable serving time to be function-based
         queue[0].counter -= 1;
@@ -170,7 +165,7 @@
   <div class="mb-1r align-middle">
     <label>
       Speed of simulation:
-      <input id="speed" type="range" value=1 step=0.25 min=0.25 max=4 oninput="updateSpeed(this.value)">
+      <input id="speed" type="range" value=1 step=0.25 min=0.25 max=10 oninput="updateSpeed(this.value)">
     </label>
     <span id="speed-display">1</span>
   </div>
